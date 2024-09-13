@@ -1,65 +1,69 @@
-#include <stdio.h>
 #include <math.h>
+#include <stdio.h>
+#include <stdbool.h>
 
-// general var
-long start_alice_capital = 1000000;
-long start_bob_capital = 1000000;
-int salary_alice = 200000;
-int satary_bob = 200000;
-
-long flat_cost = 21000000;
-int flat_rent_month_pay = 40000;
-
-int hcs_month_pay = 6000;
-int eat_month_pay = 10000;
-int other_month_pay = 3000;
-
-// deposit var
-float procent_deposit_year = 16;
-short num_deposit_year = 30;
-
-// mortgage var
-short num_mortgage_years = 30;
-float procent_rate_year = 6;
-long first_pay = 1000000;
+// consts
+const long start_alice_capital = 1000000, start_bob_capital = 1000000;
+const int salary_alice = 200000, salary_bob = 200000;
+const long flat_cost = 21000000, flat_rent_month_pay = 40000;
+const int hcs_month_pay = 6000, eat_month_pay = 10000, other_month_pay = 3000;
+const bool deposit_bool = true;
+const float percent_deposit_year = 16;
+const short num_deposit_year = 30;
+const short num_mortgage_years = 30;
+const float percent_rate_year = 6;
+const long first_mortgage_pay = 1000000;
 
 // func
-int sum_month_pay_bob();
-// calculation from mortgage-calculator.ru
-float mortgage()
-{
-    float procent_rate_month = procent_rate_year / 12 / 100;
-    float general_rate = pow((1 + procent_rate_month), num_mortgage_years * 12);
-    float month_pay = (flat_cost - first_pay) * procent_rate_month * general_rate / (general_rate - 1);
-    return month_pay;
+double mortgage() {
+    float percent_rate_month = percent_rate_year / 12 / 100;
+    float general_rate = pow((1 + percent_rate_month), num_mortgage_years * 12);
+    return (flat_cost - first_mortgage_pay) * percent_rate_month * general_rate / (general_rate - 1);
 }
 
-float deposit()
-{
-    float procent_month = procent_deposit_year / 12 / 100;
-    float new_sum_deposit = start_bob_capital;
-    for(int i = 1; i <= num_deposit_year; i++)
-    {
-        new_sum_deposit = (procent_month * new_sum_deposit) + new_sum_deposit + (satary_bob - sum_month_pay_bob());
+double deposit(double month_pay_bob) {
+    double percent_month = percent_deposit_year / 12 / 100;
+    double new_sum_deposit = start_bob_capital;
+
+    for (int i = 1; i <= num_deposit_year * 12; i++) {
+        if (deposit_bool) {
+            new_sum_deposit += percent_month * new_sum_deposit + salary_bob - month_pay_bob;
+        } else {
+            new_sum_deposit += salary_bob - month_pay_bob;
+        }
     }
+
     return new_sum_deposit;
 }
 
-float sum_month_pay_alice()
-{
-    float mortgage_month_pay = mortgage();
-    float sum_month_pay_alice = hcs_month_pay + eat_month_pay + other_month_pay + mortgage_month_pay;
-    return sum_month_pay_alice;
+void sum_month_pay(double month_pay[2]) {
+    double mortgage_month_pay = mortgage();
+    month_pay[0] = hcs_month_pay + eat_month_pay + other_month_pay + mortgage_month_pay;
+    month_pay[1] = hcs_month_pay + eat_month_pay + other_month_pay + flat_rent_month_pay;
 }
 
-int sum_month_pay_bob()
-{
-    int sum_month_pay_bob = hcs_month_pay + eat_month_pay + other_month_pay + flat_rent_month_pay;
-    return sum_month_pay_bob;
-}
+int main() {
+    double month_pay[2];
+    double new_alice_capital = start_alice_capital, total_bob_capital = start_bob_capital;
+    sum_month_pay(month_pay);
 
+    for (int i = 1; i <= num_deposit_year * 12; i++) {
+        new_alice_capital += salary_alice - month_pay[0];
+    }
 
-int main()
-{
-    printf("%f, %f", sum_month_pay_alice(), deposit());
+    double total_alice_capital = flat_cost + new_alice_capital;
+    total_bob_capital += deposit(month_pay[1]);
+
+    int alice = round(total_alice_capital);
+    int bob = round(total_bob_capital);
+
+    if (alice > bob) {
+        printf("alice is richer than bob by %d\n", alice - bob);
+    } else {
+        printf("bob is richer than alice by %d\n", bob - alice);
+    }
+
+    printf("alice capital = %d, bob capital = %d\n", alice, bob);
+
+    return 0;
 }
