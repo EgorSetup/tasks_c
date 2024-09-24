@@ -14,6 +14,10 @@ const short num_mortgage_years = 30;
 const float percent_rate_year = 6;
 const long first_mortgage_pay = 1000000;
 
+// добавиьт структуры, разбить на функции больше, привязать к определённой дате месяц год, работать с ссылками на переменные
+
+
+
 // func
 double mortgage() {
     float percent_rate_month = percent_rate_year / 12 / 100;
